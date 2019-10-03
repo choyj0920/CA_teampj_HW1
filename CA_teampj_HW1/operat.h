@@ -1,4 +1,5 @@
 #pragma once
+
 class operat
 {
 	//num[0]은 가장 끝자리 ...num[3]num[2]num[1]num[0]
