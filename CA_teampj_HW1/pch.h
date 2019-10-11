@@ -4,10 +4,11 @@
 
 #include <iostream>
 #include <iomanip>
+#include <cmath>
 #define BIT_SIZE  32
-#include "operat.h"
+#include "ALU.h"
+
 
 using namespace std;
-
 
 #endif //PCH_H
