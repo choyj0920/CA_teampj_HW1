@@ -114,6 +114,7 @@ void ALU::Start_Calculate()
 
 void  ALU::Add(const bool * num1,const  bool * num2, bool * add_result, int bitn)
 {
+	Carry[0] = false;
 	for (int i = 0; i < bitn; i++) {
 		Carry[i + 1] = ((num1[i] ^ num2[i]) &   Carry[i]) | (num1[i] & num2[i]);
 		add_result[i] = num1[i] ^ num2[i] ^ Carry[i];
@@ -122,6 +123,32 @@ void  ALU::Add(const bool * num1,const  bool * num2, bool * add_result, int bitn
 	//flag 연산
 	Flag(add_result, bitn);
 
+}
+
+void ALU::Shift_left(bool* num, int bitn, bool Q0)
+{
+	Carry[0] = Q0;
+	for (int i = 0; i < bitn; i++) 
+		Carry[i + 1] = num[i];
+	
+	for (int i = 0; i < bitn; i++) 
+		num[i] = Carry[i];
+	
+	
+	Flag(num, bitn);
+	
+}
+
+void ALU::Shift_right(bool* num, int bitn)
+{	
+	Carry[bitn - 1] = 0;
+	for (int i = 0; i < bitn-1; i++)
+		Carry[i] = num[i + 1];
+
+	for (int i = 0; i < bitn -1; i++) 
+		num[i] = Carry[i];
+	
+	Flag(num, bitn);
 }
 
 void ALU::Flag(bool *add_result ,int bitn) {
@@ -185,7 +212,7 @@ void ALU::Multiply()
 {
 	//num1 피승수M num2 승수Q , X_result A+Q;
 	cout << n1 << " X " << n2 << endl;
-	bool regist[(BIT_SIZE * 3)]={ false, };
+	bool regist[(BIT_SIZE * 2)]={ false, };
 	bool *X_result = regist;
 	bool Q0 = false;
 	bool *Q = X_result;
@@ -205,19 +232,22 @@ void ALU::Multiply()
 		if (Q[0] & (!Q0)) { //10인 경우
 			Subtract(A, num1, A, BIT_SIZE);
 			PrintBinary(A, BIT_SIZE); cout << "//"; PrintBinary(Q, BIT_SIZE); cout << "//"; cout << int(Q0); //cout << "//"; print(num1, BIT_SIZE); 
-			cout << " ||  A <- A - M \n";
+			cout << " || A <- A - M	";
+			cout << setw(8) << i + 1 << ") V : " << flag_v << ", Z : " << flag_z << ", S : " << flag_s << ", C : " << flag_c << endl;
+
 		}
 		else if ((!Q[0])&Q0) { //01인 경우
 			Add(A, num1, A, BIT_SIZE);
 			PrintBinary(A, BIT_SIZE); cout << "//"; PrintBinary(Q, BIT_SIZE); cout << "//"; cout << int(Q0); //cout << "//"; print(num1, BIT_SIZE);
-			cout << " || A <- A + M \n";
+			cout << " || A <- A + M	";
+			cout << setw(8) << i + 1 << ") V : " << flag_v << ", Z : " << flag_z << ", S : " << flag_s << ", C : " << flag_c << endl;
+
 		}
 
 		Q0 = Q[0];
 
 		//산술적 우측 shift
-		X_result[BIT_SIZE * 2] = X_result[BIT_SIZE * 2 - 1]; //최상위비트복사(산술적)
-		X_result++; A++; Q++;
+		Shift_right(X_result, BIT_SIZE * 2);
 
 		PrintBinary(A, BIT_SIZE); cout << "//"; PrintBinary(Q, BIT_SIZE); cout << "//"; cout << int(Q0); //cout << "//"; print(num1, BIT_SIZE);
 
@@ -260,10 +290,10 @@ void ALU::Divide()
 		return;
 	}
 	
-	bool X_result[(BIT_SIZE * 3)] = { false, };
+	bool X_result[(BIT_SIZE * 2)] = { false, };
 	bool Q0 = 0; //연산 전후의 A부호가 같으면 1로 / 다르면 0으로 + 연산 결과 복귀 
-	bool *Q = X_result + BIT_SIZE;
-	bool *A = X_result + BIT_SIZE + BIT_SIZE; //A의 위치
+	bool* Q = X_result;
+	bool *A = X_result + BIT_SIZE; //A의 위치
 	bool ASign = false;
 	bool cu_flag_v = false;
 
@@ -286,10 +316,11 @@ void ALU::Divide()
 	for (int i = 0; i < BIT_SIZE; i++) {
 
 		// 좌측shift
-		 A--; Q--;
+		Shift_left(X_result, BIT_SIZE * 2,false);
 
 		Q[0] = 0; //임시로 Q[0]에 0대입
-		PrintBinary(A, BIT_SIZE); cout << "//"; PrintBinary(Q, BIT_SIZE); cout << " << left shift \n";
+		PrintBinary(A, BIT_SIZE); cout << "//"; PrintBinary(Q, BIT_SIZE); cout << " << left shift "; 
+		cout << setw(9) << i + 1 << ") V : " << flag_v << ", Z : " << flag_z << ", S : " << flag_s << ", C : " << flag_c << endl;
 
 		ASign = A[BIT_SIZE - 1]; //A 이전 부호값 저장
 
@@ -330,9 +361,9 @@ void ALU::Divide()
 			Q[0] = 1;
 			PrintBinary(A, BIT_SIZE); cout << "//"; PrintBinary(Q, BIT_SIZE);
 			if (i < BIT_SIZE - 1)
-				cout << " || Q0 <- 1";
+				cout << " || Q0 <- 1"<< setw(4) << "";
 			else if (i == BIT_SIZE - 1)
-				cout << " || 연산 완료";
+				cout << " || 연산 완료"<<setw(4) << "";
 		} 
 		//A의 연산 전후 부호가 다르면 A복원
 		else {
@@ -352,9 +383,9 @@ void ALU::Divide()
 			if (i < BIT_SIZE - 1)
 				cout << " || Q0 <- 0 , A 복원";
 			else if (i == BIT_SIZE - 1)
-				cout << " || 연산 완료";
+				cout << " || 연산 완료" << setw(4) << "";
 		}
-		cout << setw(10) << i + 1 << ") V : " << flag_v << ", Z : " << flag_z << ", S : " << flag_s << ", C : " << flag_c << endl;
+		cout << setw(4) << i + 1 << ") V : " << flag_v << ", Z : " << flag_z << ", S : " << flag_s << ", C : " << flag_c << endl;
 
 		cout << "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
 

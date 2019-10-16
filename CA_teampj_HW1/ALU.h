@@ -5,7 +5,7 @@ class ALU
 	bool *num1;
 	bool *num2;
 	bool *result;
-	bool Carry[BIT_SIZE + 1] = { false, };
+	bool Carry[BIT_SIZE*2 + 1] = { false, };
 	bool flag_c;
 	bool flag_s;
 	bool flag_z;
@@ -32,6 +32,9 @@ public:
 	void Start_Calculate();
 	//병렬가산기 연산
 	void Add(const bool *num1,const bool *num2,bool* add_result, int bitn);
+	//쉬프트 연산
+	void Shift_left(bool* num, int bitn,bool Q0);
+	void Shift_right(bool* num, int bitn);
 	//플래그 연산
 	void Flag(bool *add_result, int bitn);
 	//병렬감산기 연산
